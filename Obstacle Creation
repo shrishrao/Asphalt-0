@@ -1,0 +1,86 @@
+import javax.swing.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class ObstaclesCreation {
+    Timer obstaclesCreation;
+    JLabel gameBgRef;
+    JLabel carRef;
+    Game gameRef;
+    List<Obstacles> obstaclesList = new ArrayList<Obstacles>();
+    int frameNum = 1;
+    Timer updateBgTimer;
+
+    // creates multiple obstacles
+    public ObstaclesCreation(JLabel gameBg, JLabel car, Game game) {
+        gameBgRef = gameBg;
+        carRef = car;
+        gameRef = game;
+        moveRoad();
+    }
+
+    // starts spawning obstacles
+    public void start() {
+        obstaclesCreation = new Timer();
+        TimerTask addObsTask;
+
+        addObsTask = new TimerTask() {
+            @Override
+            public void run() {
+              addObstacle();
+              gameRef.updateScore();
+            }
+        };
+        obstaclesCreation.schedule(addObsTask, 1000, 1000);
+    }
+
+    // ends actions upon game over
+    public void stop() {
+        // stop creating obstacles
+        obstaclesCreation.cancel();
+        deleteRoadTimer();
+
+
+        // stop timer for all obstacles created
+        int compCount = obstaclesList.size();
+        System.out.println(compCount);
+        for(int i=0; i<compCount; i++) {
+            if(obstaclesList.get(i) != null) {
+                obstaclesList.get(i).stopTimer();
+            }
+        }
+        gameRef.gameOver();
+    }
+
+    // adds obstacles
+    private void addObstacle() {
+        Obstacles obstacles = new Obstacles(gameBgRef, carRef, gameRef);
+        obstaclesList.add(obstacles);
+        gameBgRef.add(obstacles.getObstacles());
+        obstacles.setIndex(gameBgRef.getComponentCount() - 1);
+    }
+
+    // changes road frames
+    public void moveRoad() {
+        updateBgTimer = new Timer();
+        TimerTask updateBgTask;
+
+        updateBgTask = new TimerTask() {
+            @Override
+            public void run() {
+              if(frameNum > 15) {
+                frameNum = 1;
+              }
+              gameRef.updateBackground(frameNum++);
+            }
+        };
+        updateBgTimer.schedule(updateBgTask, 10, 10);
+    }
+
+    // stops road from moving upon game gover
+    public void deleteRoadTimer() {
+        updateBgTimer.cancel();
+    }
+}
